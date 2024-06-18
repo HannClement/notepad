@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 
 class DetailNote extends StatefulWidget {
-  const DetailNote({Key? key}) : super(key: key);
+  final int noteKey;
+  final String titleNote;
+  final String subtitleNote;
+  final DateTime createdNote;
+  final DateTime? updatedNote;
 
+  const DetailNote({Key? key, required this.noteKey, required this.titleNote, required this.subtitleNote, required this.createdNote,  this.updatedNote}) : super(key: key);
   @override
   _DetailNoteState createState() => _DetailNoteState();
 }
