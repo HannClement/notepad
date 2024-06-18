@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
+import 'package:notepad/detailNote.dart';import 'package:hive/hive.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
-void main() {
+void main() async {
+  await Hive.initFlutter();
+  await Hive.openBox('notesBox');
   runApp(const MainApp());
 }
 
@@ -63,98 +67,97 @@ class _HomePageState extends State<HomePage> {
           ),
         ),
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 25.0, vertical: 15.0),
-              child: TextField(
-                decoration: InputDecoration(
-                  fillColor: Colors.white,
-                  filled: true,
-                  enabledBorder: OutlineInputBorder(
-                    borderSide: const BorderSide(color: Colors.grey),
-                    borderRadius: BorderRadius.circular(8.0),
-                  ),
-                  hintText: "Search for Notes",
-                  prefixIcon: const Icon(Icons.search),
-                ),
-              ),
-            ),
-            GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => DetailNote(),
-                  ),
-                );
-              },
-              child: Container(
-                margin: const EdgeInsets.symmetric(horizontal: 32.0),
-                padding: const EdgeInsets.symmetric(vertical: 8.0),
-                decoration: BoxDecoration(
-                  color: Colors.greenAccent,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: ListTile(
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 18.0),
-                        title: const Text(
-                          "My Daily Life",
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        subtitle: const Text(
-                          "Updated",
-                          style: TextStyle(),
-                        ),
+      body: ValueListenableBuilder(
+        valueListenable: Hive.box('notesBox').listenable(),
+        builder: (context, Box notesBox, _) {
+          return SingleChildScrollView(
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 25.0, vertical: 15.0),
+                  child: TextField(
+                    decoration: InputDecoration(
+                      fillColor: Colors.white,
+                      filled: true,
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: const BorderSide(color: Colors.grey),
+                        borderRadius: BorderRadius.circular(8.0),
                       ),
+                      hintText: "Search for Notes",
+                      prefixIcon: const Icon(Icons.search),
                     ),
-                    const SizedBox(width: 10), // Spasi antara info notepad dan tombol
-                    ElevatedButton(
-                      onPressed: () {
+                  ),
+                ),
+                ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: notesBox.length,
+                  itemBuilder: (context, index) {
+                    final note = notesBox.getAt(index) as String;
+                    return GestureDetector(
+                      onTap: () {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => DetailNotepadPage(),
+                            builder: (context) => DetailNote(),
                           ),
                         );
                       },
-                      child: const Text('Detail'),
-                    ),
-                    PopupMenuButton<String>(
-                      icon: const Icon(Icons.more_vert),
-                      shape: const RoundedRectangleBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(10.0)),
+                      child: Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 8.0),
+                        padding: const EdgeInsets.all(16.0),
+                        decoration: BoxDecoration(
+                          color: Colors.greenAccent,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: ListTile(
+                                title: Text(
+                                  note,
+                                  style: const TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                                subtitle: const Text(
+                                  "Updated",
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            PopupMenuButton<String>(
+                              icon: const Icon(Icons.more_vert),
+                              shape: const RoundedRectangleBorder(
+                                borderRadius: BorderRadius.all(Radius.circular(10.0)),
+                              ),
+                              itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                                const PopupMenuItem<String>(
+                                  value: 'edit',
+                                  child: ListTile(
+                                    leading: Icon(Icons.edit),
+                                    title: Text('Edit'),
+                                  ),
+                                ),
+                                const PopupMenuItem<String>(
+                                  value: 'delete',
+                                  child: ListTile(
+                                    leading: Icon(Icons.delete),
+                                    title: Text('Delete'),
+                                  ),
+                                ),
+                              ],
+                              onSelected: (String value) {
+                                // Handle menu item selection
+                              },
+                            ),
+                          ],
+                        ),
                       ),
-                      itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-                        const PopupMenuItem<String>(
-                          value: 'edit',
-                          child: ListTile(
-                            leading: Icon(Icons.edit),
-                            title: Text('Edit'),
-                          ),
-                        ),
-                        const PopupMenuItem<String>(
-                          value: 'delete',
-                          child: ListTile(
-                            leading: Icon(Icons.delete),
-                            title: Text('Delete'),
-                          ),
-                        ),
-                      ],
-                      onSelected: (String value) {
-                        // Handle menu item selection
-                      },
-                    ),
-                  ],
+                    );
+                  },
                 ),
-              ),
+              ],
             ),
-          ],
-        ),
+          );
+        },
       ),
       floatingActionButton: SpeedDial(
         animatedIcon: AnimatedIcons.menu_close,
@@ -164,7 +167,7 @@ class _HomePageState extends State<HomePage> {
             label: 'Settings',
             shape: const CircleBorder(),
             onTap: () {
-
+              // Handle settings action
             },
           ),
           SpeedDialChild(
@@ -172,7 +175,27 @@ class _HomePageState extends State<HomePage> {
             label: 'Add',
             shape: const CircleBorder(),
             onTap: () {
-
+              showDialog(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: const Text('Add Note'),
+                  content: TextField(
+                    onChanged: (value) {
+                      
+                    },
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        final noteText = 'New Note';
+                        Hive.box('notesBox').add(noteText);
+                      },
+                      child: const Text('Add'),
+                    ),
+                  ],
+                ),
+              );
             },
           ),
         ],
