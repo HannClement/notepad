@@ -125,7 +125,7 @@ class _HomePageState extends State<HomePage> {
                     final noteKey = notesBox.keyAt(index) as int;
                     final titleNote = noteMap['title'] as String? ?? '';
                     final descriptionNote = noteMap['description'] as String? ?? '';
-                    // final imageUrlNote = noteMap['imageUrl'] as String? ?? 'https://binus.ac.id/binusian-journey/wp-content/uploads/2023/01/Apa-itu-team-work.jpg';
+                    final imageUrlNote = noteMap['imageUrl'] as String? ?? '';
                     final dataStringCreatedNote = noteMap['createdNote'] as String?;
                     final dataStringUpdatedNote = noteMap['updatedNote'] as String?;
                     final createdNote = dataStringCreatedNote != null ? DateTime.parse(dataStringCreatedNote) : DateTime.now();
@@ -147,7 +147,7 @@ class _HomePageState extends State<HomePage> {
                               noteKey: noteKey,
                               titleNote: titleNote,
                               descriptionNote: descriptionNote,
-                              // imageUrlNote: imageUrlNote,
+                              imageUrlNote: imageUrlNote,
                               createdNote: createdNote,
                               updatedNote: updatedNote,
                             ),
@@ -164,7 +164,22 @@ class _HomePageState extends State<HomePage> {
                           child: Stack(
                             alignment: Alignment.bottomCenter,
                             children: [
-                              
+                              if (imageUrlNote != null)
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(16),
+                                  child: Image.network(
+                                    imageUrlNote!,
+                                    height: 200,
+                                    width: double.infinity,
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                              if (imageUrlNote == null)
+                                Container(
+                                  height: 200,
+                                  width: double.infinity,
+                                  color: Colors.grey,
+                                ),
                               Container(
                                 height: 200,
                                 decoration: BoxDecoration(

@@ -4,12 +4,12 @@ class DetailNote extends StatefulWidget {
   final int noteKey;
   String titleNote;
   String descriptionNote;
-  // String imageUrlNote;
+  String? imageUrlNote;
   final DateTime createdNote;
   DateTime? updatedNote;
 
   DetailNote({
-    Key? key, required this.noteKey, required this.titleNote, required this.descriptionNote, required this.createdNote, this.updatedNote,
+    Key? key, required this.noteKey, required this.titleNote, required this.descriptionNote, this.imageUrlNote, required this.createdNote, this.updatedNote,
   }) : super(key: key);
 
   @override
