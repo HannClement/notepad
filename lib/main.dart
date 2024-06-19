@@ -3,6 +3,7 @@ import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:notepad/detailNote.dart';
+import 'package:notepad/insertNote.dart';
 
 void main() async {
   await Hive.initFlutter();
@@ -11,24 +12,27 @@ void main() async {
 }
 
 class Note {
-  final String title;
-  final String subtitle;
+  String title;
+  String description;
+  String imageUrl;
   final DateTime createdNote;
-  DateTime updatedNote;
+  DateTime? updatedNote;
 
   Note({
     required this.title,
-    required this.subtitle,
+    required this.description,
+    required this.imageUrl,
     required this.createdNote,
-    required this.updatedNote,
+    this.updatedNote,
   });
 
   Map<String, dynamic> toMap() {
     return {
       'title': title,
-      'subtitle': subtitle,
+      'description': description,
+      'imageUrl': imageUrl,
       'createdNote': createdNote.toIso8601String(),
-      'updatedNote': updatedNote.toIso8601String(),
+      'updatedNote': updatedNote?.toIso8601String(),
     };
   }
 }
@@ -54,8 +58,6 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  final TextEditingController titleController = TextEditingController();
-  final TextEditingController subtitleController = TextEditingController();
 
   @override
   void initState() {
@@ -89,131 +91,180 @@ class _HomePageState extends State<HomePage> {
           ),
         ),
       ),
-      body: SingleChildScrollView(
-        child: ValueListenableBuilder(
-          valueListenable: Hive.box('notesBox').listenable(),
-          builder: (context, Box<dynamic> notesBox, _) {
-            return Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 25.0, vertical: 15.0),
-                  child: TextField(
-                    decoration: InputDecoration(
-                      fillColor: Colors.white,
-                      filled: true,
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: const BorderSide(color: Colors.grey),
-                        borderRadius: BorderRadius.circular(8.0),
-                      ),
-                      hintText: "Search for Notes",
-                      prefixIcon: const Icon(Icons.search),
+      body: ValueListenableBuilder(
+        valueListenable: Hive.box('notesBox').listenable(),
+        builder: (context, Box<dynamic> notesBox, _) {
+          return Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 25.0, vertical: 15.0),
+                child: TextField(
+                  decoration: InputDecoration(
+                    fillColor: Colors.white,
+                    filled: true,
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: const BorderSide(color: Colors.grey),
+                      borderRadius: BorderRadius.circular(8.0),
                     ),
+                    hintText: "Search for Notes",
+                    prefixIcon: const Icon(Icons.search),
                   ),
                 ),
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 16.0),
-                  child: ListView.separated(
-                    physics: const NeverScrollableScrollPhysics(),
-                    shrinkWrap: true,
-                    separatorBuilder: (context, index) => const SizedBox(height: 8.0),
-                    itemCount: notesBox.length,
-                    itemBuilder: (context, index) {
-                      final noteMap = notesBox.getAt(index) as Map<dynamic, dynamic>?;
+              ),
+              Expanded(
+                child: ListView.separated(
+                  separatorBuilder: (context, index) => const SizedBox(height: 8.0),
+                  itemCount: notesBox.length,
+                  itemBuilder: (context, index) {
+                    final noteMap = notesBox.getAt(index) as Map<dynamic, dynamic>?;
 
-                      if (noteMap == null) {
-                        return const SizedBox();
-                      }
+                    if (noteMap == null) {
+                      return const SizedBox();
+                    }
 
-                      final noteKey = notesBox.keyAt(index) as int;
-                      final titleNote = noteMap['title'] as String? ?? '';
-                      final subtitleNote = noteMap['subtitle'] as String? ?? '';
-                      final dataStringCreatedNote = noteMap['createdNote'] as String?;
-                      final dataStringUpdatedNote = noteMap['updatedNote'] as String?;
-                      final createdNote = dataStringCreatedNote != null ? DateTime.parse(dataStringCreatedNote) : DateTime.now();
-                      final updatedNote = dataStringUpdatedNote != null ? DateTime.parse(dataStringUpdatedNote) : DateTime.now();
+                    final noteKey = notesBox.keyAt(index) as int;
+                    final titleNote = noteMap['title'] as String? ?? '';
+                    final descriptionNote = noteMap['description'] as String? ?? '';
+                    // final imageUrlNote = noteMap['imageUrl'] as String? ?? 'https://binus.ac.id/binusian-journey/wp-content/uploads/2023/01/Apa-itu-team-work.jpg';
+                    final dataStringCreatedNote = noteMap['createdNote'] as String?;
+                    final dataStringUpdatedNote = noteMap['updatedNote'] as String?;
+                    final createdNote = dataStringCreatedNote != null ? DateTime.parse(dataStringCreatedNote) : DateTime.now();
+                    final updatedNote = dataStringUpdatedNote != null ? DateTime.parse(dataStringUpdatedNote) : null;
 
-                      String formattedDate = updatedNote != null
-                          ? DateFormat.yMd().add_Hms().format(updatedNote)
-                          : DateFormat.yMd().add_Hms().format(createdNote);
+                    String dateTime;
+                    if (updatedNote != null) {
+                      dateTime = 'Updated: ${DateFormat.yMd().add_Hms().format(updatedNote)}';
+                    } else {
+                      dateTime = 'Created: ${DateFormat.yMd().add_Hms().format(createdNote)}';
+                    }
 
-                      String dateTime = updatedNote != null
-                          ? 'Updated: $formattedDate'
-                          : 'Created: $formattedDate';
-
-                      return GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => DetailNote(
-                                noteKey: noteKey,
-                                titleNote: titleNote,
-                                subtitleNote: subtitleNote,
-                                createdNote: createdNote,
-                                updatedNote: updatedNote,
-                              ),
+                    return GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => DetailNote(
+                              noteKey: noteKey,
+                              titleNote: titleNote,
+                              descriptionNote: descriptionNote,
+                              // imageUrlNote: imageUrlNote,
+                              createdNote: createdNote,
+                              updatedNote: updatedNote,
                             ),
-                          );
-                        },
-                        child: Container(
-                          margin: const EdgeInsets.symmetric(horizontal: 32.0),
-                          padding: const EdgeInsets.all(16.0),
-                          decoration: BoxDecoration(
-                            color: Colors.greenAccent,
+                          ),
+                        );
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                        child: Card(
+                          shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(16),
                           ),
-                          child: Row(
+                          elevation: 4,
+                          child: Stack(
+                            alignment: Alignment.bottomCenter,
                             children: [
-                              Expanded(
-                                child: ListTile(
-                                  title: Text(
-                                    titleNote,
-                                    style: const TextStyle(fontWeight: FontWeight.bold),
+                              
+                              Container(
+                                height: 200,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(16),
+                                  gradient: LinearGradient(
+                                    colors: [Colors.black54, Colors.transparent],
+                                    begin: Alignment.bottomCenter,
+                                    end: Alignment.topCenter,
+                                    stops: [0.0, 0.7],
                                   ),
-                                  subtitle: Text(dateTime),
                                 ),
                               ),
-                              const SizedBox(width: 10),
-                              PopupMenuButton<String>(
-                                icon: const Icon(Icons.more_vert),
-                                shape: const RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.all(Radius.circular(10.0)),
+                              Positioned(
+                                top: 16,
+                                right: 16,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: Colors.black54,
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Text(
+                                    dateTime,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 10,
+                                    ),
+                                  ),
                                 ),
-                                itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-                                  const PopupMenuItem<String>(
-                                    value: 'details',
-                                    child: ListTile(
-                                      leading: Icon(Icons.info),
-                                      title: Text('Details'),
+                              ),
+                              Positioned(
+                                bottom: 16,
+                                right: 52,
+                                child: IconButton(
+                                  icon: const Icon(Icons.info, color: Colors.white),
+                                  onPressed: () {
+                                    
+                                  },
+                                ),
+                              ),
+                              Positioned(
+                                bottom: 16,
+                                right: 16,
+                                child: IconButton(
+                                  icon: const Icon(Icons.delete, color: Colors.white),
+                                  onPressed: () {
+                                    notesBox.deleteAt(index);
+                                  },
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.all(16.0),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      titleNote,
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 24,
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                     ),
-                                  ),
-                                  const PopupMenuItem<String>(
-                                    value: 'delete',
-                                    child: ListTile(
-                                      leading: Icon(Icons.delete),
-                                      title: Text('Delete'),
+                                    SizedBox(height: 8),
+                                    Row(
+                                      children: [
+                                        CircleAvatar(
+                                          backgroundImage: NetworkImage('https://www.nespresso.com/ecom/medias/sys_master/public/13264482598942/supercharge-your-wfh-routine-body-image-4168x1797-1.jpg'),
+                                          radius: 12,
+                                        ),
+                                        SizedBox(width: 4),
+                                        CircleAvatar(
+                                          backgroundImage: NetworkImage('https://www.nespresso.com/ecom/medias/sys_master/public/13264482598942/supercharge-your-wfh-routine-body-image-4168x1797-1.jpg'),
+                                          radius: 12,
+                                        ),
+                                        SizedBox(width: 4),
+                                        Text(
+                                          '+1',
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 16,
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                  ),
-                                ],
-                                onSelected: (String value) {
-                                  if (value == 'delete') {
-                                    setState(() {
-                                      notesBox.deleteAt(index);
-                                    });
-                                  }
-                                },
+                                  ],
+                                ),
                               ),
                             ],
                           ),
                         ),
-                      );
-                    },
-                  ),
+                      ),
+                    );
+                  },
                 ),
-              ],
-            );
-          },
-        ),
+              ),
+            ],
+          );
+        },
       ),
       floatingActionButton: SpeedDial(
         animatedIcon: AnimatedIcons.menu_close,
@@ -223,7 +274,6 @@ class _HomePageState extends State<HomePage> {
             label: 'Settings',
             shape: const CircleBorder(),
             onTap: () {
-              
             },
           ),
           SpeedDialChild(
@@ -231,57 +281,10 @@ class _HomePageState extends State<HomePage> {
             label: 'Add',
             shape: const CircleBorder(),
             onTap: () {
-              showDialog(
-                context: context,
-                builder: (context) => AlertDialog(
-                  title: const Text('Add New Note'),
-                  content: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      TextField(
-                        controller: titleController,
-                        decoration: const InputDecoration(
-                          labelText: 'Title',
-                        ),
-                        onChanged: (value) {
-                          setState(() {});
-                        },
-                      ),
-                      const SizedBox(height: 8.0),
-                      TextField(
-                        controller: subtitleController,
-                        decoration: const InputDecoration(
-                          labelText: 'Subtitle',
-                        ),
-                        onChanged: (value) {
-                          setState(() {});
-                        },
-                      ),
-                    ],
-                  ),
-                  actions: [
-                    TextButton(
-                      onPressed: () {
-                        final title = titleController.text.trim();
-                        final subtitle = subtitleController.text.trim();
-                        if (title.isNotEmpty && subtitle.isNotEmpty) {
-                          final createdNote = DateTime.now();
-                          final updatedNote = DateTime.now();
-                          final newNote = {
-                            'title': title,
-                            'subtitle': subtitle,
-                            'createdNote': createdNote.toIso8601String(),
-                            'updatedNote': updatedNote.toIso8601String(),
-                          };
-                          Hive.box('notesBox').add(newNote);
-                          titleController.clear();
-                          subtitleController.clear();
-                          Navigator.pop(context);
-                        }
-                      },
-                      child: const Text('Add'),
-                    ),
-                  ],
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => DataNote(),
                 ),
               );
             },
