@@ -164,22 +164,15 @@ class _HomePageState extends State<HomePage> {
                           child: Stack(
                             alignment: Alignment.bottomCenter,
                             children: [
-                              if (imageUrlNote != null)
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(16),
-                                  child: Image.network(
-                                    imageUrlNote!,
-                                    height: 200,
-                                    width: double.infinity,
-                                    fit: BoxFit.cover,
-                                  ),
-                                ),
-                              if (imageUrlNote == null)
-                                Container(
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(16),
+                                child: Image.network(
+                                  imageUrlNote,
                                   height: 200,
                                   width: double.infinity,
-                                  color: Colors.grey,
+                                  fit: BoxFit.cover,
                                 ),
+                              ),
                               Container(
                                 height: 200,
                                 decoration: BoxDecoration(

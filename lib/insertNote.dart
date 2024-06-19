@@ -40,6 +40,11 @@ class _DataNoteState extends State<DataNote> {
                 }
               },
             ),
+            IconButton(
+              icon: Icon(Icons.link ,color: Colors.black),
+              onPressed: () {
+              },
+            ),
           ],
         ),
       ),
