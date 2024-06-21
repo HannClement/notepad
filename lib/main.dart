@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -8,6 +9,7 @@ import 'package:notepad/insertNote.dart';
 void main() async {
   await Hive.initFlutter();
   await Hive.openBox('notesBox');
+  await Hive.openBox('settingsBox');
   runApp(const MainApp());
 }
 
@@ -61,25 +63,522 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  final settingsBox = Hive.box('settingsBox');
+  final pinController = TextEditingController();
+
+  String enteredPin = '';
+  bool isPinVisible = false;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          content: Text("Create PIN", textAlign: TextAlign.center),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text("Accept"),
-            ),
-          ],
-        ),
-      );
+      if (settingsBox.get('pin') == null) {
+        modalCreatePin();
+      } else {
+        modalLoginPin();
+      }
     });
   }
+
+  Widget numButton(int number, void Function(void Function()) setStateDialog) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 2.0),
+      child: TextButton(
+        onPressed: () {
+          setStateDialog(() {
+            if (enteredPin.length < 4) {
+              enteredPin += number.toString();
+            }
+          });
+        },
+        child: Text(
+          number.toString(),
+          style: const TextStyle(
+            fontSize: 24.0,
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
+          ),
+        ),
+      ),
+    );
+  }
+
+  void modalCreatePin() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            return Dialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16.0),
+              ),
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(24.0),
+                physics: const BouncingScrollPhysics(),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const SizedBox(height: 16.0),
+                    const Center(
+                      child: Text(
+                        'Create Your PIN',
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16.0),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: List.generate(4, (index) {
+                        return Container(
+                          margin: const EdgeInsets.all(6.0),
+                          width: isPinVisible ? 50 : 16,
+                          height: isPinVisible ? 50 : 16,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(6.0),
+                            color: index < enteredPin.length
+                                ? isPinVisible
+                                    ? Colors.green
+                                    : CupertinoColors.activeBlue
+                                : CupertinoColors.activeBlue.withOpacity(0.1),
+                          ),
+                          child: isPinVisible && index < enteredPin.length
+                              ? Center(
+                                  child: Text(
+                                    enteredPin[index],
+                                    style: const TextStyle(
+                                      fontSize: 17,
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                )
+                              : null,
+                        );
+                      }),
+                    ),
+                    const SizedBox(height: 16.0),
+                    IconButton(
+                      onPressed: () {
+                        setStateDialog(() {
+                          isPinVisible = !isPinVisible;
+                        });
+                      },
+                      icon: Icon(
+                        isPinVisible ? Icons.visibility_off : Icons.visibility,
+                      ),
+                    ),
+                    SizedBox(height: isPinVisible ? 20.0 : 8.0),
+                    for (var i = 0; i < 3; i++)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: List.generate(
+                            3,
+                            (index) => numButton(1 + 3 * i + index, setStateDialog),
+                          ).toList(),
+                        ),
+                      ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const TextButton(onPressed: null, child: SizedBox()),
+                          numButton(0, setStateDialog),
+                          TextButton(
+                            onPressed: () {
+                              setStateDialog(() {
+                                if (enteredPin.isNotEmpty) {
+                                  enteredPin = enteredPin.substring(0, enteredPin.length - 1);
+                                }
+                              });
+                            },
+                            child: const Icon(
+                              Icons.backspace,
+                              color: Colors.black,
+                              size: 24,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16.0),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        TextButton(
+                          onPressed: () {
+                            setStateDialog(() {
+                              enteredPin = '';
+                            });
+                          },
+                          child: const Text(
+                            'Reset',
+                            style: TextStyle(
+                              fontSize: 20,
+                              color: Colors.red,
+                            ),
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            if (enteredPin.length == 4) {
+                              settingsBox.put('pin', enteredPin);
+                              Navigator.pop(context);
+                            }
+                          },
+                          child: const Text(
+                            'Confirm',
+                            style: TextStyle(
+                              fontSize: 20,
+                              color: Colors.green,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void modalLoginPin() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            return Dialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16.0),
+              ),
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(24.0),
+                physics: const BouncingScrollPhysics(),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const SizedBox(height: 16.0),
+                    const Center(
+                      child: Text(
+                        'Login with PIN',
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16.0),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: List.generate(4, (index) {
+                        return Container(
+                          margin: const EdgeInsets.all(6.0),
+                          width: isPinVisible ? 50 : 16,
+                          height: isPinVisible ? 50 : 16,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(6.0),
+                            color: index < enteredPin.length
+                                ? isPinVisible
+                                    ? Colors.green
+                                    : CupertinoColors.activeBlue
+                                : CupertinoColors.activeBlue.withOpacity(0.1),
+                          ),
+                          child: isPinVisible && index < enteredPin.length
+                              ? Center(
+                                  child: Text(
+                                    enteredPin[index],
+                                    style: const TextStyle(
+                                      fontSize: 17,
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                )
+                              : null,
+                        );
+                      }),
+                    ),
+                    const SizedBox(height: 16.0),
+                    IconButton(
+                      onPressed: () {
+                        setStateDialog(() {
+                          isPinVisible = !isPinVisible;
+                        });
+                      },
+                      icon: Icon(
+                        isPinVisible ? Icons.visibility_off : Icons.visibility,
+                      ),
+                    ),
+                    SizedBox(height: isPinVisible ? 20.0 : 8.0),
+                    for (var i = 0; i < 3; i++)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: List.generate(
+                            3,
+                            (index) => numButton(1 + 3 * i + index, setStateDialog),
+                          ).toList(),
+                        ),
+                      ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const TextButton(onPressed: null, child: SizedBox()),
+                          numButton(0, setStateDialog),
+                          TextButton(
+                            onPressed: () {
+                              setStateDialog(() {
+                                if (enteredPin.isNotEmpty) {
+                                  enteredPin = enteredPin.substring(0, enteredPin.length - 1);
+                                }
+                              });
+                            },
+                            child: const Icon(
+                              Icons.backspace,
+                              color: Colors.black,
+                              size: 24,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16.0),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        TextButton(
+                          onPressed: () {
+                            setStateDialog(() {
+                              enteredPin = '';
+                            });
+                          },
+                          child: const Text(
+                            'Reset',
+                            style: TextStyle(
+                              fontSize: 20,
+                              color: Colors.red,
+                            ),
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            if (enteredPin.length == 4) {
+                              String? storedPin = settingsBox.get('pin');
+                              if (enteredPin == storedPin) {
+                                Navigator.pop(context);
+                              } 
+                              else {
+                                showDialog(
+                                  context: context,
+                                  builder: (context) => AlertDialog(
+                                    title: Text(
+                                      'PIN Salah', 
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold),
+                                          textAlign: TextAlign.center,
+                                    ),
+                                    content: Text(
+                                      'PIN yang Anda masukkan tidak cocok'
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () {
+                                          Navigator.pop(context);
+                                        },
+                                        child: Text('OK'),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              }
+                            }
+                          },
+                          child: const Text(
+                            'Confirm',
+                            style: TextStyle(
+                              fontSize: 20,
+                              color: Colors.green,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void modalChangePin() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            return Dialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16.0),
+              ),
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(24.0),
+                physics: const BouncingScrollPhysics(),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const SizedBox(height: 16.0),
+                    const Center(
+                      child: Text(
+                        'Change Your PIN',
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16.0),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: List.generate(4, (index) {
+                        return Container(
+                          margin: const EdgeInsets.all(6.0),
+                          width: isPinVisible ? 50 : 16,
+                          height: isPinVisible ? 50 : 16,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(6.0),
+                            color: index < enteredPin.length
+                                ? isPinVisible
+                                    ? Colors.green
+                                    : CupertinoColors.activeBlue
+                                : CupertinoColors.activeBlue.withOpacity(0.1),
+                          ),
+                          child: isPinVisible && index < enteredPin.length
+                              ? Center(
+                                  child: Text(
+                                    enteredPin[index],
+                                    style: const TextStyle(
+                                      fontSize: 17,
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                )
+                              : null,
+                        );
+                      }),
+                    ),
+                    const SizedBox(height: 16.0),
+                    IconButton(
+                      onPressed: () {
+                        setStateDialog(() {
+                          isPinVisible = !isPinVisible;
+                        });
+                      },
+                      icon: Icon(
+                        isPinVisible ? Icons.visibility_off : Icons.visibility,
+                      ),
+                    ),
+                    SizedBox(height: isPinVisible ? 20.0 : 8.0),
+                    for (var i = 0; i < 3; i++)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: List.generate(
+                            3,
+                            (index) => numButton(1 + 3 * i + index, setStateDialog),
+                          ).toList(),
+                        ),
+                      ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const TextButton(onPressed: null, child: SizedBox()),
+                          numButton(0, setStateDialog),
+                          TextButton(
+                            onPressed: () {
+                              setStateDialog(() {
+                                if (enteredPin.isNotEmpty) {
+                                  enteredPin = enteredPin.substring(0, enteredPin.length - 1);
+                                }
+                              });
+                            },
+                            child: const Icon(
+                              Icons.backspace,
+                              color: Colors.black,
+                              size: 24,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16.0),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        TextButton(
+                          onPressed: () {
+                            setStateDialog(() {
+                              enteredPin = '';
+                            });
+                          },
+                          child: const Text(
+                            'Reset',
+                            style: TextStyle(
+                              fontSize: 20,
+                              color: Colors.red,
+                            ),
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            if (enteredPin.length == 4) {
+                              settingsBox.put('pin', enteredPin);
+                              Navigator.pop(context);
+                            }
+                          },
+                          child: const Text(
+                            'Confirm',
+                            style: TextStyle(
+                              fontSize: 20,
+                              color: Colors.green,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
 
   void modalProperties({required String createdNote, String? updatedNote, required String imageUrl}) {
     showDialog(
@@ -243,7 +742,7 @@ class _HomePageState extends State<HomePage> {
 
                     int collaboratorCount = 0;
 
-                    if (otherCollaboratorNote != null && otherCollaboratorNote.isNotEmpty) {
+                    if (otherCollaboratorNote.isNotEmpty) {
                       collaboratorCount = otherCollaboratorNote.split(',').length;
                     }
                     String dateTime;
@@ -404,6 +903,7 @@ class _HomePageState extends State<HomePage> {
             label: 'Settings',
             shape: CircleBorder(),
             onTap: () {
+              modalChangePin();
             },
           ),
           SpeedDialChild(

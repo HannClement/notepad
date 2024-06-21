@@ -32,8 +32,9 @@ class _DetailNoteState extends State<DetailNote> {
           ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SizedBox(height: 16.0),
+              SizedBox(height: 8.0),
                 Text(
                 widget.otherCollaboratorNote?.isNotEmpty == true ? widget.otherCollaboratorNote! : "No other collaborators",
                 style: TextStyle(
