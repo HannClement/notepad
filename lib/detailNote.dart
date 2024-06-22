@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:notepad/editNote.dart';
 
 class DetailNote extends StatefulWidget {
   final int noteKey;
@@ -10,8 +11,14 @@ class DetailNote extends StatefulWidget {
   String? otherCollaboratorNote;
 
   DetailNote({
-    Key? key, required this.noteKey, required this.titleNote, required this.descriptionNote, required this.imageUrlNote, 
-    required this.createdNote, this.updatedNote, this.otherCollaboratorNote
+    Key? key, 
+    required this.noteKey, 
+    required this.titleNote, 
+    required this.descriptionNote, 
+    required this.imageUrlNote, 
+    required this.createdNote, 
+    this.updatedNote, 
+    this.otherCollaboratorNote,
   }) : super(key: key);
 
   @override
@@ -19,7 +26,6 @@ class DetailNote extends StatefulWidget {
 }
 
 class _DetailNoteState extends State<DetailNote> {
-
   void modalCollaborator() {
     showDialog(
       context: context,
@@ -35,7 +41,7 @@ class _DetailNoteState extends State<DetailNote> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SizedBox(height: 8.0),
-                Text(
+              Text(
                 widget.otherCollaboratorNote?.isNotEmpty == true ? widget.otherCollaboratorNote! : "No other collaborators",
                 style: TextStyle(
                   fontSize: 16,
@@ -61,7 +67,7 @@ class _DetailNoteState extends State<DetailNote> {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'Add New Note',
+          'Detail Note',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         actions: [
@@ -75,9 +81,8 @@ class _DetailNoteState extends State<DetailNote> {
                 },
               ),
               IconButton(
-                icon : Icon(Icons.edit),
+                icon: Icon(Icons.edit),
                 onPressed: () {
-
                 },
               ),
             ],

@@ -42,6 +42,7 @@ class Note {
   }
 }
 
+
 class MainApp extends StatelessWidget {
   const MainApp({Key? key}) : super(key: key);
 
@@ -68,18 +69,6 @@ class _HomePageState extends State<HomePage> {
 
   String enteredPin = '';
   bool isPinVisible = false;
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (settingsBox.get('pin') == null) {
-        modalCreatePin();
-      } else {
-        modalLoginPin();
-      }
-    });
-  }
 
   Widget numButton(int number, void Function(void Function()) setStateDialog) {
     return Padding(
@@ -688,6 +677,16 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    String? pin = settingsBox.get('pin');
+    if (pin == null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        modalCreatePin();
+      });
+    } else {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        modalLoginPin();
+      });
+    }
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -745,6 +744,7 @@ class _HomePageState extends State<HomePage> {
                     if (otherCollaboratorNote.isNotEmpty) {
                       collaboratorCount = otherCollaboratorNote.split(',').length;
                     }
+
                     String dateTime;
                     if (updatedNote != null) {
                       dateTime = 'Updated: ${DateFormat.yMd().add_Hms().format(updatedNote)}';
