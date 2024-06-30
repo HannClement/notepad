@@ -587,7 +587,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-
   void modalProperties({required String createdNote, String? updatedNote, required String imageUrl}) {
     showDialog(
       context: context,
@@ -756,10 +755,6 @@ class _HomePageState extends State<HomePage> {
                     }
 
                     int collaboratorCount = 0;
-
-                    if (otherCollaborator != null && otherCollaborator.isNotEmpty) {
-                      collaboratorCount = otherCollaborator.split(',').length;
-                    }
 
                     return GestureDetector(
                       onTap: () async {
