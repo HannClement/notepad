@@ -82,7 +82,7 @@ class _ChangeNoteState extends State<ChangeNote> {
                 minLines: 1,
                 controller: collaboratorController,
                 decoration: const InputDecoration(
-                  labelText: "Collaborator Email",
+                  labelText: "Collaborator Email (Optional)",
                   border: OutlineInputBorder(),
                 ),
               ),
