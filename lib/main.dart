@@ -43,8 +43,9 @@ class Note {
 }
 
 
+
 class MainApp extends StatelessWidget {
-  const MainApp({Key? key}) : super(key: key);
+  const MainApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -57,15 +58,34 @@ class MainApp extends StatelessWidget {
 }
 
 class HomePage extends StatefulWidget {
-  const HomePage({Key? key}) : super(key: key);
+  const HomePage({super.key});
 
   @override
   _HomePageState createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
-  final settingsBox = Hive.box('settingsBox');
-  final pinController = TextEditingController();
+  late Box<dynamic> notesBox;
+  late Box<dynamic> settingsBox;
+
+  @override
+  void initState() {
+    super.initState();
+    notesBox = Hive.box('notesBox');
+    settingsBox = Hive.box('settingsBox');
+
+    // Check pin and show modal if null
+    String? pin = settingsBox.get('pin');
+    if (pin == null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        modalCreatePin();
+      });
+    } else {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        modalLoginPin();
+      });
+    }
+  }
 
   String enteredPin = '';
   bool isPinVisible = false;
@@ -377,13 +397,13 @@ class _HomePageState extends State<HomePage> {
                                 showDialog(
                                   context: context,
                                   builder: (context) => AlertDialog(
-                                    title: Text(
+                                    title: const Text(
                                       'PIN Salah', 
                                       style: TextStyle(
                                         fontWeight: FontWeight.bold),
                                           textAlign: TextAlign.center,
                                     ),
-                                    content: Text(
+                                    content: const Text(
                                       'PIN yang Anda masukkan tidak cocok'
                                     ),
                                     actions: [
@@ -391,7 +411,7 @@ class _HomePageState extends State<HomePage> {
                                         onPressed: () {
                                           Navigator.pop(context);
                                         },
-                                        child: Text('OK'),
+                                        child: const Text('OK'),
                                       ),
                                     ],
                                   ),
@@ -574,7 +594,7 @@ class _HomePageState extends State<HomePage> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text(
+          title: const Text(
             "Properties",
             style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
             textAlign: TextAlign.center,
@@ -583,78 +603,78 @@ class _HomePageState extends State<HomePage> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SizedBox(height: 16.0),
-              Text(
+              const SizedBox(height: 16.0),
+              const Text(
                 "Created Note",
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w400
                 ),  
               ),
-              SizedBox(height: 8.0),
+              const SizedBox(height: 8.0),
               Container(
-                padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 8.0),
+                padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 8.0),
                 decoration: BoxDecoration(
                   color: Colors.greenAccent,
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Padding(
-                  padding: EdgeInsets.only(left: 4.0),
+                  padding: const EdgeInsets.only(left: 4.0),
                   child: Text(
-                    "$createdNote",
-                    style: TextStyle(
+                    createdNote,
+                    style: const TextStyle(
                       fontSize: 16,
                     ),
                   ),  
                 ),
               ),
               if (updatedNote != null) ...[
-                SizedBox(height: 16.0),
-                Text(
-                  "Updated Note : $updatedNote",
+                const SizedBox(height: 16.0),
+                const Text(
+                  "Updated Note",
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w400
                   ),  
                 ),
-                SizedBox(height: 8.0),
+                const SizedBox(height: 8.0),
                 Container(
-                  padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 8.0),
+                  padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 8.0),
                   decoration: BoxDecoration(
                     color: Colors.greenAccent,
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Padding(
-                    padding: EdgeInsets.only(left: 4.0),
+                    padding: const EdgeInsets.only(left: 4.0),
                     child: Text(
-                      "$updatedNote",
-                      style: TextStyle(
+                      updatedNote,
+                      style: const TextStyle(
                         fontSize: 16,
                       ),
                     ),  
                   ),
                 ),
               ],
-              SizedBox(height: 16.0),
-              Text(
+              const SizedBox(height: 16.0),
+              const Text(
                 "Image Background URL",
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w400
                 ),  
               ),
-              SizedBox(height: 8.0),
+              const SizedBox(height: 8.0),
               Container(
-                padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 8.0),
+                padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 8.0),
                 decoration: BoxDecoration(
                   color: Colors.greenAccent,
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Padding(
-                  padding: EdgeInsets.only(left: 4.0),
+                  padding: const EdgeInsets.only(left: 4.0),
                   child: Text(
-                    "$imageUrl",
-                    style: TextStyle(
+                    imageUrl,
+                    style: const TextStyle(
                       fontSize: 16,
                     ),
                   ),  
@@ -667,7 +687,7 @@ class _HomePageState extends State<HomePage> {
               onPressed: () {
                 Navigator.pop(context);
               },
-              child: Text("Okay", style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 16.0)),
+              child: const Text("Okay", style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 16.0)),
             ),
           ],
         );
@@ -677,19 +697,9 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    String? pin = settingsBox.get('pin');
-    if (pin == null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        modalCreatePin();
-      });
-    } else {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        modalLoginPin();
-      });
-    }
     return Scaffold(
       appBar: AppBar(
-        title: Text(
+        title: const Text(
           'Notepad',
           style: TextStyle(
             fontWeight: FontWeight.bold,
@@ -699,7 +709,7 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
       body: ValueListenableBuilder(
-        valueListenable: Hive.box('notesBox').listenable(),
+        valueListenable: notesBox.listenable(),
         builder: (context, Box<dynamic> notesBox, _) {
           return Column(
             children: [
@@ -710,40 +720,34 @@ class _HomePageState extends State<HomePage> {
                     fillColor: Colors.white,
                     filled: true,
                     enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: Colors.grey),
+                      borderSide: const BorderSide(color: Colors.grey),
                       borderRadius: BorderRadius.circular(8.0),
                     ),
                     hintText: "Search for Notes",
-                    prefixIcon: Icon(Icons.search),
+                    prefixIcon: const Icon(Icons.search),
                   ),
                 ),
               ),
               Expanded(
                 child: ListView.separated(
-                  separatorBuilder: (context, index) => SizedBox(height: 8.0),
+                  separatorBuilder: (context, index) => const SizedBox(height: 8.0),
                   itemCount: notesBox.length,
                   itemBuilder: (context, index) {
                     final noteMap = notesBox.getAt(index) as Map<dynamic, dynamic>?;
 
                     if (noteMap == null) {
-                      return SizedBox();
+                      return const SizedBox();
                     }
 
+                    final map = noteMap.cast<String, dynamic>();
                     final noteKey = notesBox.keyAt(index) as int;
-                    final titleNote = noteMap['title'] as String? ?? '';
-                    final descriptionNote = noteMap['description'] as String? ?? '';
-                    final imageUrlNote = noteMap['imageUrl'] as String? ?? '';
-                    final dataStringCreatedNote = noteMap['createdNote'] as String?;
-                    final dataStringUpdatedNote = noteMap['updatedNote'] as String?;
-                    final createdNote = dataStringCreatedNote != null ? DateTime.parse(dataStringCreatedNote) : DateTime.now();
-                    final updatedNote = dataStringUpdatedNote != null ? DateTime.parse(dataStringUpdatedNote) : null;
-                    final otherCollaboratorNote = noteMap['otherCollaborator'] as String? ?? '';
 
-                    int collaboratorCount = 0;
-
-                    if (otherCollaboratorNote.isNotEmpty) {
-                      collaboratorCount = otherCollaboratorNote.split(',').length;
-                    }
+                    String title = map['title'] != null ? map['title'] as String : 'Default Title';
+                    String description = map['description'] != null ? map['description'] as String : 'Default Description';
+                    String imageUrl = map['imageUrl'] != null ? map['imageUrl'] as String : 'Default_Image_Url';
+                    final DateTime createdNote = map['createdNote'] != null ? DateTime.parse(map['createdNote'] as String) : DateTime.now();
+                    DateTime? updatedNote = map['updatedNote'] != null ? DateTime.parse(map['updatedNote'] as String) : null;
+                    String? otherCollaborator = map['otherCollaborator'] as String?;
 
                     String dateTime;
                     if (updatedNote != null) {
@@ -752,25 +756,44 @@ class _HomePageState extends State<HomePage> {
                       dateTime = 'Created: ${DateFormat.yMd().add_Hms().format(createdNote)}';
                     }
 
+                    int collaboratorCount = 0;
+
+                    if (otherCollaborator != null && otherCollaborator.isNotEmpty) {
+                      collaboratorCount = otherCollaborator.split(',').length;
+                    }
+
                     return GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => DetailNote(
-                              noteKey: noteKey,
-                              titleNote: titleNote,
-                              descriptionNote: descriptionNote,
-                              imageUrlNote: imageUrlNote,
-                              createdNote: createdNote,
-                              updatedNote: updatedNote,
-                              otherCollaboratorNote: otherCollaboratorNote,
-                            ),
+                      onTap: () async {
+                      final result = await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => DetailNote(
+                            noteKey: noteKey,
+                            titleNote: title,
+                            descriptionNote: description,
+                            imageUrlNote: imageUrl,
+                            updatedNote: updatedNote,
+                            otherCollaboratorNote: otherCollaborator,
                           ),
-                        );
+                        ),
+                      );
+                      if (result != null && result is Map<String, dynamic>) {
+                          setState(() {
+                            notesBox.put(noteKey, {
+                              'title': result['titleNote'] ?? title,
+                              'description': result['descriptionNote'] ?? description,
+                              'imageUrl': result['imageUrlNote'] ?? imageUrl,
+                              'createdNote': createdNote.toIso8601String(),
+                              'updatedNote': result['updatedNote'] != null
+                                  ? DateTime.parse(result['updatedNote'] as String).toIso8601String()
+                                  : null,
+                              'otherCollaborator': result['otherCollaboratorNote'] ?? otherCollaborator,
+                            });
+                          });
+                        }
                       },
                       child: Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 24.0),
+                        padding: const EdgeInsets.symmetric(horizontal: 24.0),
                         child: Card(
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(16),
@@ -782,7 +805,7 @@ class _HomePageState extends State<HomePage> {
                               ClipRRect(
                                 borderRadius: BorderRadius.circular(16),
                                 child: Image.network(
-                                  imageUrlNote,
+                                  imageUrl,
                                   height: 200,
                                   width: double.infinity,
                                   fit: BoxFit.cover,
@@ -792,7 +815,7 @@ class _HomePageState extends State<HomePage> {
                                 height: 200,
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(16),
-                                  gradient: LinearGradient(
+                                  gradient: const LinearGradient(
                                     colors: [Colors.black54, Colors.transparent],
                                     begin: Alignment.bottomCenter,
                                     end: Alignment.topCenter,
@@ -804,14 +827,14 @@ class _HomePageState extends State<HomePage> {
                                 top: 16,
                                 right: 16,
                                 child: Container(
-                                  padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                   decoration: BoxDecoration(
                                     color: Colors.black54,
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: Text(
                                     dateTime,
-                                    style: TextStyle(
+                                    style: const TextStyle(
                                       color: Colors.white,
                                       fontSize: 11,
                                     ),
@@ -822,11 +845,15 @@ class _HomePageState extends State<HomePage> {
                                 bottom: 16,
                                 right: 52,
                                 child: IconButton(
-                                  icon: Icon(Icons.info, color: Colors.white),
+                                  icon: const Icon(Icons.info, color: Colors.white),
                                   onPressed: () {
-                                    modalProperties(createdNote : DateFormat.yMd().add_Hms().format(createdNote),
-                                    updatedNote: updatedNote != null ? DateFormat.yMd().add_Hms().format(updatedNote) : null,
-                                    imageUrl: imageUrlNote);
+                                    modalProperties(
+                                      createdNote: DateFormat.yMd().add_Hms().format(createdNote),
+                                      updatedNote: updatedNote != null
+                                          ? DateFormat.yMd().add_Hms().format(updatedNote)
+                                          : null,
+                                      imageUrl: imageUrl,
+                                    );
                                   },
                                 ),
                               ),
@@ -834,37 +861,39 @@ class _HomePageState extends State<HomePage> {
                                 bottom: 16,
                                 right: 16,
                                 child: IconButton(
-                                  icon: Icon(Icons.delete, color: Colors.white),
+                                  icon: const Icon(Icons.delete, color: Colors.white),
                                   onPressed: () {
-                                    notesBox.deleteAt(index);
+                                    setState(() {
+                                      notesBox.deleteAt(index);
+                                    });
                                   },
                                 ),
                               ),
                               Padding(
-                                padding: EdgeInsets.all(16.0),
+                                padding: const EdgeInsets.all(16.0),
                                 child: Column(
                                   mainAxisSize: MainAxisSize.min,
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      titleNote,
-                                      style: TextStyle(
+                                      title,
+                                      style: const TextStyle(
                                         color: Colors.white,
                                         fontSize: 24,
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
-                                    SizedBox(height: 8),
+                                    const SizedBox(height: 8),
                                     Row(
                                       children: [
-                                        CircleAvatar(
+                                        const CircleAvatar(
                                           backgroundImage: NetworkImage('https://www.nespresso.com/ecom/medias/sys_master/public/13264482598942/supercharge-your-wfh-routine-body-image-4168x1797-1.jpg'),
                                           radius: 12,
                                         ),
-                                        SizedBox(width: 4),
+                                        const SizedBox(width: 4),
                                         Text(
                                           collaboratorCount > 0 ? '+ more' : '',
-                                          style: TextStyle(
+                                          style: const TextStyle(
                                             color: Colors.white,
                                             fontSize: 16,
                                           ),
@@ -899,22 +928,22 @@ class _HomePageState extends State<HomePage> {
         animatedIcon: AnimatedIcons.menu_close,
         children: [
           SpeedDialChild(
-            child: Icon(Icons.settings_outlined),
+            child: const Icon(Icons.settings_outlined),
             label: 'Settings',
-            shape: CircleBorder(),
+            shape: const CircleBorder(),
             onTap: () {
               modalChangePin();
             },
           ),
           SpeedDialChild(
-            child: Icon(Icons.add_card_outlined),
+            child: const Icon(Icons.add_card_outlined),
             label: 'Add',
-            shape: CircleBorder(),
+            shape: const CircleBorder(),
             onTap: () {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => DataNote(),
+                  builder: (context) => const DataNote(),
                 ),
               );
             },

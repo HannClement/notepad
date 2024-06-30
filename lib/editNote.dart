@@ -1,23 +1,22 @@
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
 class ChangeNote extends StatefulWidget {
   final int noteKey;
-  String titleNote;
-  String descriptionNote;
-  String imageUrlNote;
-  DateTime? updatedNote;
-  String? otherCollaboratorNote;
+  final String titleNote;
+  final String descriptionNote;
+  final String imageUrlNote;
+  final DateTime? updatedNote;
+  final String? otherCollaboratorNote;
 
-  ChangeNote({
-    Key? key,
+  const ChangeNote({super.key, 
     required this.noteKey,
     required this.titleNote,
     required this.descriptionNote,
     required this.imageUrlNote,
     this.updatedNote,
     this.otherCollaboratorNote,
-  }) : super(key: key);
+  });
 
   @override
   _ChangeNoteState createState() => _ChangeNoteState();
@@ -27,7 +26,7 @@ class _ChangeNoteState extends State<ChangeNote> {
   late TextEditingController titleController;
   late TextEditingController descriptionController;
   late TextEditingController imageUrlController;
-  late TextEditingController emailCollaboratorController;
+  late TextEditingController collaboratorController;
 
   @override
   void initState() {
@@ -35,27 +34,81 @@ class _ChangeNoteState extends State<ChangeNote> {
     titleController = TextEditingController(text: widget.titleNote);
     descriptionController = TextEditingController(text: widget.descriptionNote);
     imageUrlController = TextEditingController(text: widget.imageUrlNote);
-    emailCollaboratorController = TextEditingController(text: widget.otherCollaboratorNote);
+    collaboratorController = TextEditingController(text: widget.otherCollaboratorNote ?? '');
+  }
+
+  @override
+  void dispose() {
+    titleController.dispose();
+    descriptionController.dispose();
+    imageUrlController.dispose();
+    collaboratorController.dispose();
+    super.dispose();
+  }
+
+  void updateNoteInHive() {
+    final notesBox = Hive.box('notesBox');
+
+    final Map<String, dynamic> updatedData = {
+      'titleNote': titleController.text,
+      'descriptionNote': descriptionController.text,
+      'imageUrlNote': imageUrlController.text,
+      'updatedNote': DateTime.now().toIso8601String(),
+      'otherCollaboratorNote': collaboratorController.text,
+    };
+
+    notesBox.put(widget.noteKey, updatedData);
+
+    Navigator.pop(context, updatedData);
   }
 
   void modalCollaborator() {
-  }
+    collaboratorController.text = widget.otherCollaboratorNote ?? '';
 
-  void saveChanges() {
-    var notesBox = Hive.box('notesBox');
-
-    notesBox.putAt(
-      widget.noteKey,
-      {
-        'title': titleController.text,
-        'description': descriptionController.text,
-        'imageUrl': imageUrlController.text,
-        'updatedNote': DateTime.now().toIso8601String(),
-        'otherCollaborator': emailCollaboratorController.text,
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text(
+            "Edit Collaborator",
+            style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
+            textAlign: TextAlign.center,
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                maxLines: 7,
+                minLines: 1,
+                controller: collaboratorController,
+                decoration: const InputDecoration(
+                  labelText: "Collaborator Email",
+                  border: OutlineInputBorder(),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Cancel", style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 16.0)),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context, collaboratorController.text);
+              },
+              child: const Text("Save", style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 16.0)),
+            ),
+          ],
+        );
       },
-    );
-
-    Navigator.pop(context);
+    ).then((result) {
+      if (result != null) {
+        setState(() {
+          collaboratorController.text = result;
+        });
+      }
+    });
   }
 
   @override
@@ -68,15 +121,15 @@ class _ChangeNoteState extends State<ChangeNote> {
         ),
         actions: [
           IconButton(
-            icon: Icon(Icons.add_moderator_outlined),
+            icon: const Icon(Icons.add_moderator_outlined),
             onPressed: () {
               modalCollaborator();
             },
           ),
           IconButton(
-            icon: Icon(Icons.check),
+            icon: const Icon(Icons.check),
             onPressed: () {
-              saveChanges();
+              updateNoteInHive();
             },
           ),
         ],
@@ -86,14 +139,14 @@ class _ChangeNoteState extends State<ChangeNote> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
+            const Text(
               'Title',
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            SizedBox(height: 8.0),
+            const SizedBox(height: 8.0),
             TextField(
               controller: titleController,
               decoration: InputDecoration(
@@ -107,15 +160,15 @@ class _ChangeNoteState extends State<ChangeNote> {
                 contentPadding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 16.0),
               ),
             ),
-            SizedBox(height: 16.0),
-            Text(
+            const SizedBox(height: 16.0),
+            const Text(
               'Description',
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            SizedBox(height: 8.0),
+            const SizedBox(height: 8.0),
             TextField(
               controller: descriptionController,
               maxLines: null,
@@ -131,15 +184,15 @@ class _ChangeNoteState extends State<ChangeNote> {
                 contentPadding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 16.0),
               ),
             ),
-            SizedBox(height: 16.0),
-            Text(
+            const SizedBox(height: 16.0),
+            const Text(
               'Image URL',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            SizedBox(height: 8.0),
+            const SizedBox(height: 8.0),
             TextField(
               controller: imageUrlController,
               maxLines: 5,

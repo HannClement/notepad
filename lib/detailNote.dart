@@ -3,35 +3,48 @@ import 'package:notepad/editNote.dart';
 
 class DetailNote extends StatefulWidget {
   final int noteKey;
-  String titleNote;
-  String descriptionNote;
-  String imageUrlNote;
-  final DateTime createdNote;
-  DateTime? updatedNote;
-  String? otherCollaboratorNote;
+  final String titleNote;
+  final String descriptionNote;
+  final String imageUrlNote;
+  final DateTime? updatedNote;
+  final String? otherCollaboratorNote;
 
-  DetailNote({
-    Key? key, 
-    required this.noteKey, 
-    required this.titleNote, 
-    required this.descriptionNote, 
-    required this.imageUrlNote, 
-    required this.createdNote, 
-    this.updatedNote, 
+  const DetailNote({super.key, 
+    required this.noteKey,
+    required this.titleNote,
+    required this.descriptionNote,
+    required this.imageUrlNote,
+    this.updatedNote,
     this.otherCollaboratorNote,
-  }) : super(key: key);
+  });
 
   @override
   _DetailNoteState createState() => _DetailNoteState();
 }
 
 class _DetailNoteState extends State<DetailNote> {
+  late String title;
+  late String description;
+  late String imageUrl;
+  late DateTime? updatedNote;
+  late String? otherCollaborator;
+
+  @override
+  void initState() {
+    super.initState();
+    title = widget.titleNote;
+    description = widget.descriptionNote;
+    imageUrl = widget.imageUrlNote;
+    updatedNote = widget.updatedNote;
+    otherCollaborator = widget.otherCollaboratorNote;
+  }
+
   void modalCollaborator() {
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text(
+          title: const Text(
             "Other Collaborator",
             style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
             textAlign: TextAlign.center,
@@ -40,10 +53,12 @@ class _DetailNoteState extends State<DetailNote> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SizedBox(height: 8.0),
+              const SizedBox(height: 8.0),
               Text(
-                widget.otherCollaboratorNote?.isNotEmpty == true ? widget.otherCollaboratorNote! : "No other collaborators",
-                style: TextStyle(
+                otherCollaborator != null && otherCollaborator!.isNotEmpty
+                    ? '$otherCollaborator'
+                    : "No other collaborators",
+                style: const TextStyle(
                   fontSize: 16,
                 ),
               ),
@@ -54,7 +69,14 @@ class _DetailNoteState extends State<DetailNote> {
               onPressed: () {
                 Navigator.pop(context);
               },
-              child: Text("Okay", style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 16.0)),
+              child: const Text(
+                "Okay",
+                style: TextStyle(
+                  color: Colors.green,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16.0,
+                ),
+              ),
             ),
           ],
         );
@@ -75,14 +97,39 @@ class _DetailNoteState extends State<DetailNote> {
             mainAxisSize: MainAxisSize.min,
             children: [
               IconButton(
-                icon: Icon(Icons.add_moderator_outlined),
+                icon: const Icon(Icons.add_moderator_outlined),
                 onPressed: () {
                   modalCollaborator();
                 },
               ),
               IconButton(
-                icon: Icon(Icons.edit),
-                onPressed: () {
+                icon: const Icon(Icons.edit),
+                onPressed: () async {
+                  final result = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ChangeNote(
+                        noteKey: widget.noteKey,
+                        titleNote: title,
+                        descriptionNote: description,
+                        imageUrlNote: imageUrl,
+                        updatedNote: updatedNote,
+                        otherCollaboratorNote: otherCollaborator,
+                      ),
+                    ),
+                  );
+                  if (result != null && result is Map<String, dynamic>) {
+                    setState(() {
+                      title = result['titleNote'];
+                      description = result['descriptionNote'];
+                      imageUrl = result['imageUrlNote'];
+                      updatedNote = result['updatedNote'] != null
+                          ? DateTime.parse(result['updatedNote'])
+                          : updatedNote;
+                      otherCollaborator = result['otherCollaboratorNote'];
+                    });
+                    Navigator.pop(context, result);
+                  }
                 },
               ),
             ],
@@ -94,18 +141,18 @@ class _DetailNoteState extends State<DetailNote> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SizedBox(height: 8.0),
+            const SizedBox(height: 8.0),
             Text(
-              widget.titleNote,
-              style: TextStyle(
+              title,
+              style: const TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            SizedBox(height: 8.0),
+            const SizedBox(height: 8.0),
             Text(
-              widget.descriptionNote,
-              style: TextStyle(
+              description,
+              style: const TextStyle(
                 fontSize: 18,
               ),
             ),

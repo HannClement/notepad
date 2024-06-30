@@ -3,7 +3,7 @@ import 'package:hive/hive.dart';
 import 'package:validators/validators.dart' as validator;
 
 class DataNote extends StatefulWidget {
-  const DataNote({Key? key}) : super(key: key);
+  const DataNote({super.key});
 
   @override
   _DataNoteState createState() => _DataNoteState();
@@ -20,7 +20,7 @@ class _DataNoteState extends State<DataNote> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text(
+          title: const Text(
             "Add Other Collaborator",
             style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
             textAlign: TextAlign.center,
@@ -32,7 +32,7 @@ class _DataNoteState extends State<DataNote> {
                 maxLines: 7,
                 minLines: 1,
                 controller: emailCollaboratorController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: "Collaborator Email (Optional)",
                   border: OutlineInputBorder(),
                 ),
@@ -42,13 +42,13 @@ class _DataNoteState extends State<DataNote> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text("Cancel", style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 16.0)),
+              child: const Text("Cancel", style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 16.0)),
             ),
             TextButton(
               onPressed: () {
                 Navigator.pop(context);
               },
-              child: Text("Add", style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 16.0)),
+              child: const Text("Add", style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 16.0)),
             ),
           ],
         );
@@ -69,13 +69,13 @@ class _DataNoteState extends State<DataNote> {
             mainAxisSize: MainAxisSize.min,
             children: [
               IconButton(
-                icon: Icon(Icons.add_moderator_outlined),
+                icon: const Icon(Icons.add_moderator_outlined),
                 onPressed: () {
                   modalCollaborator();
                 },
               ),
               IconButton(
-                icon: Icon(Icons.check),
+                icon: const Icon(Icons.check),
                 onPressed: () {
                   final String title = titleController.text;
                   final String description = descriptionController.text;
@@ -109,14 +109,14 @@ class _DataNoteState extends State<DataNote> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
+            const Text(
               'Title',
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            SizedBox(height: 8.0),
+            const SizedBox(height: 8.0),
             TextField(
               controller: titleController,
               decoration: InputDecoration(
@@ -130,15 +130,15 @@ class _DataNoteState extends State<DataNote> {
                 contentPadding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 16.0),
               ),
             ),
-            SizedBox(height: 16.0),
-            Text(
+            const SizedBox(height: 16.0),
+            const Text(
               'Description',
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            SizedBox(height: 8.0),
+            const SizedBox(height: 8.0),
             TextField(
               controller: descriptionController,
               maxLines: null,
@@ -154,15 +154,15 @@ class _DataNoteState extends State<DataNote> {
                 contentPadding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 16.0),
               ),
             ),
-            SizedBox(height: 16.0),
-            Text(
+            const SizedBox(height: 16.0),
+            const Text(
               'Image URL',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            SizedBox(height: 8.0),
+            const SizedBox(height: 8.0),
             TextField(
               controller: imageUrlController,
               maxLines: 5,
