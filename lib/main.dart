@@ -74,7 +74,6 @@ class _HomePageState extends State<HomePage> {
     notesBox = Hive.box('notesBox');
     settingsBox = Hive.box('settingsBox');
 
-    // Check pin and show modal if null
     String? pin = settingsBox.get('pin');
     if (pin == null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
